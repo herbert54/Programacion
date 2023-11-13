@@ -5,259 +5,298 @@
 #include <string>
 using namespace std;
 
-// template<class T>
-// T Max(T a,T b){
-//     cout<<"T max(T a,T b): ";
-//     return a>b?a:b;
-// }
-
-// template <>
-// char Max(char a,char b){
-//     cout<<"Especializacion max(T a,T b): "<<endl;
-//     return a>b?a:b;
-// }
-
-
-// template<class T>
-// struct Foo{
-//     Foo(){cout<<"Plantilla Original"<<endl;}
-// };
-
-// template <>
-// struct Foo<int>{
-//     Foo(){cout<<"Plantilla Especializada"<<endl;}
-// };
-// template<typename... T>
-// void foo(T... xs){
-//     cout<<sizeof...(xs);
-// }
-
-/*return (xs + ...)   ->  1+ (2+(3+(4 +5 )))
-  return (... + xs)   -> (((1+2)+3 )+ 4)+5)*/
-
-template<class... Ts>
-auto suma(Ts... args){
-    return (args+...);
-}
-
-// template<typename... Ts>
-// void print(Ts... args){
-//     (cout<<...<<args)<<endl;
-// }
-
-void print(){cout<<endl;}
-
-template<typename T,typename... Ts>
-void print(T arg,Ts...args){
-    cout<<arg;
-    print(args...);
-}
-
-//EJERCICIO 1
-
-template<typename T1,typename T2>
-char suma(T1 a,T2 b){
-    return a+b;
-}
-
-int suma(int a,int b){
-    return a+b;
-}
-
-//EJERCICIO 2
-template<typename T1,typename T2>
-void sumar(T1** m1,T2** m2,int filas,int columnas){
-    for (int i = 0; i < filas; i++)
-    {
-        for (int j = 0; j < columnas; j++)
-        {
-            m1[i][j]+=m2[i][j];
-        }    
-    } 
-}
-
-
-template<typename T1,typename T2>
-void sumar(T1** m1,T2 s,int filas,int columnas){
-    for (int i = 0; i < filas; i++)
-    {
-        for (int j = 0; j < columnas; j++)
-        {
-            m1[i][j]+=s;
-        }    
-    } 
-}
-
-
-//EJERCICIO 3
-template<typename T>
-T max(vector<T> vec){
-    T maximo=vec[0];
-    for (int i = 1; i < vec.size(); i++)
-    {
-        if (vec[i]>maximo)
-        {
-            maximo=vec[i];
-        }
-        
-    }
-    return maximo;
-};
-
-template<>
-string max(vector<string> vec){
-    string maximo=vec[0];
-    int maximo_sz=maximo.size();
-
-    for (int i = 0; i < vec.size(); i++)
-    {
-        if (vec[i].size()>maximo_sz)
-        {
-            maximo=vec[i];
-            maximo_sz=maximo.size();
-        }
-        
-    }   
-    return maximo;
-}
-
-// int main(){
-//     cout<<Max(2,1)<<endl;
-//     cout<<Max('a','b')<<endl;
-//     cout<<Max(0.7,1.5)<<endl;
-//     Foo<float> obj1;
-//     Foo<char> objt2;
-//     Foo<int> obj3;
-//     cout<<suma(1)<<endl;
-//     cout<<suma(1,2)<<endl;
-//     cout<<suma(1,2,3.5,0.5,5)<<endl;   
-//     print(1,2,3,4,5);
-//     print("Hola",1,"Mundo");
-
-
-//     //Ejercicio 1
-//     cout<<suma(3,4)<<endl;
-//     cout<<suma('A',1)<<endl;
-//     cout<<suma(1,'B')<<endl;
-//     cout<<suma('<','>')<<endl;
-
-
-//     //EJERCICIO 2
-//     int** m1=new int*[5];
-//     double** m2=new double*[5];
-
-//     for (int i = 0; i < 5; i++)
-//     {
-//         m1[i]=new int[5];
-//         m2[i]=new double[5];
-//     }
-//     for (int i = 0; i < 5; i++)
-//     {
-//         for (int j = 0; j < 5; j++)
-//         {
-//             m1[i][j]=rand()%10;
-//             m2[i][j]=(double)(rand()%10000)/10000;
-//         }
-        
-//     }
-
-//     auto** mr1=sumar(m2,m1,5,5);
-//     auto** mr2=sumar(m2,5.6,5,5);
-
-//     for (int i = 0; i < 5; i++)
-//     {
-//         for (int j = 0; j < 5; j++)
-//         {
-//             cout<<fixed<<setprecision(4)<<mr1[i][j]<<" ";
-//         }
-//         cout<<endl;
-//     }
-    
-//     for (int i = 0; i < 5; i++)
-//     {
-//         delete[] m1[i];
-//         delete[] m2[i];
-//     }
-
-
-//     EJERCICIO 3
-//     vector<int> v1={1,2,67,2,23,77,-5};
-//     cout<<max(v1)<<endl;
-// }
-
-template<typename ...Ts>
-double sumainv(Ts ...args){
-    return ((1.0/args)+...);
-}
-
-template<typename ...Ts>
-double mArmonica(Ts ... args){
-    return (double)sizeof...(args)/sumainv(args...);
-}
-
-
-//EJERCICIO 2
-template<typename ...Ts>
-double sumacua(Ts ...args){
-    return (pow(args,2)+...);
-}
-template<typename ...Ts>
-double norma2(Ts ...args){
-    return sqrt(sumacua(args...)) ;
-}
-
-// template<typename ...Ts>double norma2(Ts... args){
-
-// return sqrt((pow(args,2)+...));
-// }
-
-//EJERCICIO 4
-template<typename ...Ts>
-double foo(Ts... args){
-    return (args-...);
-}
-
-//EJERCICIO 5
-template<typename T>
-int maxnum(T a,T b){
-    return a>b?a:b;
-}
-template<class T,class ...Ts>
-int maxnum(T a,T b,Ts... args){
-    return args...;
-}
-template<class T>
-class Vec
-{
-private:
-    vector<T> vec;
+class Nodo {
 public:
-    void push_back_many(T arg){
-        vec.push_back(arg);
-    }
+  int dato;
+  Nodo* left;
+  Nodo* right;
 
-    template<typename T0,typename...Ts>
-    void push_back_many(T0 arg,Ts...args){
-        vec.push_back(arg);
-        push_back_many(args...);
-    }
-
-
-void print(){
-    for (int e:vec)
-    {
-        cout<<e<<" ";
-    }
-    
-}
+  // Constructor
+  Nodo(int dato) {
+    this->dato = dato;
+    left = nullptr;
+    right = nullptr;
+  }
 };
 
-int main(){
-    
-    // cout<<mArmonica(1,2,3,4,5)<<endl;
-    // cout<<mArmonica(1.2,1.2,1.2)<<endl;
-    // cout<<norma2(3,4)<<endl;
-    //cout<<foo(4,4,5,6)<<endl;
-    cout<<maxnum(3,4,5,6)<<endl;
-    
+class BST {
+private:
+    Nodo* raiz;
+    Nodo* insertarNodoAux(Nodo* nodo, int dato);
+    Nodo* buscarNodoAux(Nodo* nodo, int dato);
+
+    // Funciones auxiliares para imprimir los nodos en diferentes órdenes
+    void imprimirPreOrdenAux(Nodo* nodo);
+
+    Nodo* padreAux(Nodo*, int);
+
+    Nodo* LCAAux(Nodo*,int);
+    vector<int> caminoAux(Nodo*,int,int);
+public:
+    // Constructor
+    BST();
+    BST(vector<int> preorden);
+
+    //----------TAREA----------//
+    Nodo* LCA(int,int);
+    vector<int> camino(int,int);
+
+
+
+
+    ~BST();
+    void insertarNodo(int dato);
+    Nodo* buscarNodo(int dato);
+
+  // Funciones para imprimir los nodos en diferentes órdenes
+    void imprimirPreOrden();
+    void destruirArbol(Nodo*);
+
+    //Ejercicio 1b:
+    Nodo* padre(int);
+
+};
+
+// Constructor
+BST::BST(): raiz(nullptr) {}
+
+// Constructor
+BST::BST(vector<int> preorden) {
+  raiz = nullptr;
+  for (int i = 0; i < preorden.size(); i++) {
+    insertarNodo(preorden[i]);
+  }
+}
+
+Nodo* BST::LCA(int a,int b){
+    Nodo* n=padre(a);
+    if (LCAAux(n,b)!=buscarNodo(b))
+    {
+      return LCA(n->dato,b);
+    }
+    else{
+      return buscarNodo(n->dato); 
+    }
+}
+
+Nodo* BST::LCAAux(Nodo* nodo,int b){
+  if (nodo == nullptr || nodo->dato == b)
+    return nodo;
+
+  if (b < nodo->dato)
+    return buscarNodoAux(nodo->left, b);
+  else
+    return buscarNodoAux(nodo->right, b);
+}
+
+// Insertar un nodo en el árbol
+void BST::insertarNodo(int dato) {
+  raiz = insertarNodoAux(raiz, dato);
+}
+
+// Función auxiliar para insertar un nodo en el árbol
+Nodo* BST::insertarNodoAux(Nodo* nodo, int dato) {
+  if (nodo == nullptr)
+    return new Nodo(dato);
+
+  if (dato < nodo->dato)
+    nodo->left = insertarNodoAux(nodo->left, dato);
+  else if (dato > nodo->dato)
+    nodo->right = insertarNodoAux(nodo->right, dato);
+  return nodo;
+}
+
+// Buscar un nodo en el árbol
+Nodo* BST::buscarNodo(int dato) {
+  return buscarNodoAux(raiz, dato);
+}
+
+// Función auxiliar para buscar un nodo en el árbol
+Nodo* BST::buscarNodoAux(Nodo* nodo, int dato) {
+  if (nodo == nullptr || nodo->dato == dato)
+    return nodo;
+
+  if (dato < nodo->dato)
+    return buscarNodoAux(nodo->left, dato);
+  else
+    return buscarNodoAux(nodo->right, dato);
+}
+
+// Función para imprimir los nodos en preorden
+void BST::imprimirPreOrden() {
+  imprimirPreOrdenAux(raiz);
+  cout << endl;
+}
+
+// Función auxiliar para imprimir los nodos en preorden
+void BST::imprimirPreOrdenAux(Nodo* nodo) {
+  if (nodo == nullptr) {
+    return;
+  }
+
+  cout << nodo->dato << " ";
+  imprimirPreOrdenAux(nodo->left);
+  imprimirPreOrdenAux(nodo->right);
+}
+
+BST::~BST() {
+  destruirArbol(raiz);
+}
+
+void BST::destruirArbol(Nodo* nodo) {
+  if (nodo == nullptr) {
+    return;
+  }
+
+  // Recorrer el subárbol izquierdo
+  destruirArbol(nodo->left);
+
+  // Recorrer el subárbol derecho
+  destruirArbol(nodo->right);
+
+  // Eliminar el nodo actual
+  delete nodo;
+}
+
+Nodo* BST::padre(int x){
+    return padreAux(raiz,x);
+}
+
+Nodo* BST::padreAux(Nodo* nodo,int x){
+    if (nodo==nullptr)
+    {
+        return nullptr;
+    }
+    if (raiz->dato==x) // x es la raiz 50
+    {
+        return nullptr;
+    }
+
+    if (nodo->left!=nullptr && nodo->left->dato==x ) // buscamos padre de 30 
+    {
+        return nodo;    
+    }
+    if (nodo->right!=nullptr && nodo->right->dato==x)
+    {
+        return nodo;
+    }
+
+    if (x<nodo->dato)
+    {
+        return padreAux(nodo->left,x);
+    }
+
+    else
+    {
+        return padreAux(nodo->right,x);
+    }   
+}
+
+
+// vector<int> BST::camino(int inicio, int fin) {
+//     // Buscar los nodos correspondientes a los datos de inicio y fin
+//     Nodo* inicioNodo = buscarNodo(inicio);
+//     Nodo* finNodo = buscarNodo(fin);
+//     Nodo* lcanodo =LCA(inicio,fin);
+//     // Verificar si ambos nodos existen en el árbol
+//     if (inicioNodo == nullptr || finNodo == nullptr) {
+//         // Al menos uno de los nodos no está presente en el árbol
+//         // Puedes manejar esto de acuerdo a tus necesidades (lanzar una excepción, devolver un vector vacío, etc.)
+//         return vector<int>();
+//     }
+
+//     // Obtener el camino desde el nodo de inicio hasta el nodo de fin
+//     vector<int> caminoVector = caminoAux(lcanodo, inicio, fin);
+
+//     return caminoVector;
+// }
+
+// vector<int> BST::caminoAux(Nodo* nodo, int inicio, int fin) {
+//     vector<int> caminoVector;
+
+//     // Si el nodo actual es nulo o es el nodo de inicio
+//     if (nodo == nullptr || nodo->dato == inicio) {
+//         caminoVector.push_back(inicio);
+//         return caminoVector;
+//     }
+
+//     // Buscar en el subárbol izquierdo
+//     if (inicio < nodo->dato) {
+//         vector<int> izquierda = caminoAux(nodo->left, inicio, fin);
+//         caminoVector.insert(caminoVector.end(), izquierda.begin(), izquierda.end());
+//     }
+
+//     // Si el nodo actual es parte del camino, agregarlo al vector
+//     caminoVector.push_back(nodo->dato);
+
+//     // Buscar en el subárbol derecho
+//     if (fin > nodo->dato) {
+//         vector<int> derecha = caminoAux(nodo->right, inicio, fin);
+//         caminoVector.insert(caminoVector.end(), derecha.begin(), derecha.end());
+//     }
+
+//     return caminoVector;
+// }
+
+vector<int> BST::camino(int inicio, int fin) {
+    // Buscar los nodos correspondientes a los datos de inicio y fin
+    Nodo* inicioNodo = buscarNodo(inicio);
+    Nodo* finNodo = buscarNodo(fin);
+    Nodo* lcanodo =LCA(inicio,fin);
+    // Verificar si ambos nodos existen en el árbol
+    if (inicioNodo == nullptr || finNodo == nullptr) {
+        // Al menos uno de los nodos no está presente en el árbol
+        // Puedes manejar esto de acuerdo a tus necesidades (lanzar una excepción, devolver un vector vacío, etc.)
+        return vector<int>();
+    }
+
+    // Obtener el camino desde el nodo de inicio hasta el nodo de fin
+    vector<int> caminoVector = caminoAux(lcanodo, inicio, fin);
+
+    return caminoVector;
+}
+
+vector<int> BST::caminoAux(Nodo* nodo, int inicio, int fin) {
+    vector<int> caminoVector;
+
+    // Si el nodo actual es nulo o es el nodo de inicio
+    if (nodo == nullptr || nodo->dato == inicio) {
+        caminoVector.push_back(inicio);
+        return caminoVector;
+    }
+
+    // Buscar en el subárbol izquierdo
+    if (inicio < nodo->dato) {
+        vector<int> izquierda = caminoAux(nodo->left, inicio, fin);
+        caminoVector.insert(caminoVector.end(), izquierda.begin(), izquierda.end());
+    }
+
+    // Si el nodo actual es parte del camino, agregarlo al vector
+    caminoVector.push_back(nodo->dato);
+
+    // Si el nodo actual es el nodo de fin, detener la búsqueda
+    if (nodo->dato == fin) {
+        return caminoVector;
+    }
+
+    // Buscar en el subárbol derecho
+    if (fin > nodo->dato) {
+        vector<int> derecha = caminoAux(nodo->right, inicio, fin);
+        caminoVector.insert(caminoVector.end(), derecha.begin(), derecha.end());
+    }
+
+    return caminoVector;
+}
+
+
+
+int main() {
+    int x=55,y=75;
+    vector<int> pre_order = {50,30,20,10,25,40,70,60,55,65,80,75,90};
+    BST arbol(pre_order);
+
+    vector<int> camino1 = arbol.camino(x,y);
+    for (int nodo : camino1) {
+        cout << nodo << " ";
+    }
 }
