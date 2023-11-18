@@ -3,6 +3,7 @@
 #include <vector>
 #include <fstream>
 #include <iomanip>
+#include <queue>
 using namespace std;
 
 #define ANSI_COLOR_RESET "\033[0m"
@@ -10,6 +11,7 @@ using namespace std;
 #define ANSI_COLOR_RED "\033[1;31m"  
 #define ANSI_COLOR_ORANGE "\033[1;38;5;208m"
 #define ANSI_COLOR_GREEN "\033[1;32m"   // Verde
+
 
 struct Position
 {
@@ -21,7 +23,7 @@ struct Position
 
 
 
-void printmaze(const std::vector<std::vector<char>>& maze, size_t eRow, size_t eCol,size_t endRow, size_t endCol) {
+void printmaze(const vector<std::vector<char>>& maze, size_t eRow, size_t eCol,size_t endRow, size_t endCol) {
     for (size_t i = 0; i < maze.size(); ++i) {
         for (size_t j = 0; j < maze[i].size(); ++j) {
             if (i == eRow && j == eCol && maze[i][j] == 'e') {
@@ -34,7 +36,7 @@ void printmaze(const std::vector<std::vector<char>>& maze, size_t eRow, size_t e
                 cout << maze[i][j] << ' ';
             }
         }
-        std::cout << std::endl;
+        cout << endl;
     }
 }
 
@@ -42,9 +44,9 @@ void printMazesolution(const std::vector<std::vector<char>>& maze, const Positio
     for (size_t i = 0; i < maze.size(); ++i) {
         for (size_t j = 0; j < maze[i].size(); ++j) {
             if (i == start.row && j == start.col && maze[i][j] == 'e') {
-                std::cout << ANSI_COLOR_YELLOW << 'e' << ANSI_COLOR_RESET << ' ';
+                cout << ANSI_COLOR_YELLOW << 'e' << ANSI_COLOR_RESET << ' ';
             } else if (i == end.row && j == end.col && maze[i][j] == 's') {
-                std::cout << ANSI_COLOR_RED << 's' << ANSI_COLOR_RESET << ' ';
+                cout << ANSI_COLOR_RED << 's' << ANSI_COLOR_RESET << ' ';
             } else {
                 bool isPath = false;
                 for (const auto& pos : path) {
@@ -54,13 +56,13 @@ void printMazesolution(const std::vector<std::vector<char>>& maze, const Positio
                     }
                 }
                 if (isPath) {
-                    std::cout << ANSI_COLOR_GREEN << '*' << ANSI_COLOR_RESET << ' ';
+                    cout << ANSI_COLOR_GREEN << '*' << ANSI_COLOR_RESET << ' ';
                 } else {
-                    std::cout << maze[i][j] << ' ';
+                    cout << maze[i][j] << ' ';
                 }
             }
         }
-        std::cout << std::endl;
+        cout << endl;
     }
 }
 
@@ -95,6 +97,87 @@ bool caminoDFS(vector<vector<char>>& maze,Position current,const Position& end,v
     return false; 
 }
 
+bool caminoBFS(vector<vector<char>>& maze,const Position& star,const Position& end,vector<Position>& path){
+    // Verificar si estamos fuera de los limites del laberinto
+    if (star.row<0 || star.row>=maze.size() || star.col<0 || star.col>=maze[star.row].size()){
+       return false; 
+    }
+
+    queue<Position> queue;
+    vector<vector<bool>> visited(maze.size(),vector<bool>(maze[0].size(),false));
+    vector<vector<Position>> parent(maze.size(),vector<Position>(maze[0].size(),Position(-1,-1)));
+    
+    queue.push(star);
+    visited[star.row][star.col]=true;
+
+    while (!queue.empty())
+    {
+        Position current=queue.front();
+        queue.pop();
+        maze[current.row][current.col]='v';
+        if (current.row==end.row && current.col==end.col)
+        {
+            
+            Position backtrack=end;
+            while (!(backtrack.row==star.row && backtrack.col==star.col))
+            {
+                path.push_back(backtrack);
+                backtrack=parent[backtrack.row][backtrack.col];
+            }
+            // Revertir el camino para tener la dirección correcta
+            reverse(path.begin(),path.end());
+            return true;
+        }
+        
+        //Explorar en las 4 direcciones
+        vector<Position> directions={{-1,0}, {1,0},{0,-1},{0,1}};
+
+        for(const auto& dir:directions){
+            int newrow=current.row+dir.row;
+            int newcol=current.col+dir.col;
+
+            if (newrow>=0 && newrow<maze.size()&&newcol>=0&&newcol<maze[newrow].size()&&
+            maze[newrow][newcol]!='+' && !visited[newrow][newcol])
+            {
+                queue.push({newrow,newcol});
+                visited[newrow][newcol]=true;
+                parent[newrow][newcol]=current;
+            } 
+        }
+    }
+    return false;
+}
+
+void datastart(vector<vector<char>> maze,int& starrow,int& startcol){
+    for (int i = 0; i < maze.size(); i++)
+        {
+            for (int j = 0; j < maze[i].size(); j++)
+            {
+                if (maze[i][j]=='e')
+                {
+                    starrow=i;
+                    startcol=j;
+                    break;
+                }
+            }
+        }
+} 
+
+void dataend(vector<vector<char>> maze,int& endrow,int& endcol){
+    for (int i = 0; i < maze.size(); i++)
+        {
+            for (int j = 0; j < maze[i].size(); j++)
+            {
+                if (maze[i][j]=='s')
+                {
+                    endrow=i;
+                    endcol=j;
+                    break;
+                }  
+            }
+        }
+}
+
 int main(){
 
     ifstream file("maze.txt");
@@ -116,39 +199,17 @@ int main(){
     cout<<setw(10)<<"MENU"<<endl;
     cout<<setw(2)<<"1.Jugar laberinto"<<endl;
     cout<<setw(2)<<"2.Solucion con algoritmo DFS"<<endl;
-    cout<<setw(2)<<"3.Exit"<<endl;
+    cout<<setw(2)<<"3.Solucion con algoritmo BFS"<<endl;
+    cout<<setw(2)<<"4.Exit"<<endl;
     cout<<"Seleccione: ";cin>>seleccion;
 
     if (seleccion==1){
         int starrow=0,startcol=0;
-        for (int i = 0; i < maze.size(); i++)
-        {
-            for (int j = 0; j < maze[i].size(); j++)
-            {
-                if (maze[i][j]=='e')
-                {
-                    starrow=i;
-                    startcol=j;
-                    break;
-                }
-            }
-        }
+        datastart(maze,starrow,startcol);
 
         // Encontrar la posición final "s"
         int endrow=0,endcol=0;
-        for (int i = 0; i < maze.size(); i++)
-        {
-            for (int j = 0; j < maze[i].size(); j++)
-            {
-                if (maze[i][j]=='s')
-                {
-                    endrow=i;
-                    endcol=j;
-                    break;
-                }  
-            }
-        }
-        
+        dataend(maze,endrow,endcol);
         
         printmaze(maze,starrow,startcol,endrow,endcol);
 
@@ -200,6 +261,51 @@ int main(){
         }
     }else if (seleccion==2){
         int starrow=0,startcol=0;
+        datastart(maze,starrow,startcol);
+        // for (int i = 0; i < maze.size(); i++)
+        // {
+        //     for (int j = 0; j < maze[i].size(); j++)
+        //     {
+        //         if (maze[i][j]=='e')
+        //         {
+        //             starrow=i;
+        //             startcol=j;
+        //             break;
+        //         }
+        //     }
+        // }
+
+        // Encontrar la posición final "s"
+        int endrow=0,endcol=0;
+        dataend(maze,endrow,endcol);
+        // for (int i = 0; i < maze.size(); i++)
+        // {
+        //     for (int j = 0; j < maze[i].size(); j++)
+        //     {
+        //         if (maze[i][j]=='s')
+        //         {
+        //             endrow=i;
+        //             endcol=j;
+        //             break;
+        //         }  
+        //     }
+        // }
+        
+        vector<Position> path;
+
+        if (caminoDFS(maze,{starrow,startcol},{endrow,endcol},path))
+        {
+            cout<<"Camino encontrado: "<<endl;
+
+            printMazesolution(maze,{starrow,startcol},{endrow,endcol},path);
+        }
+        else
+        {
+            cout<<"No se encontro un camino desde 'e' hasta 's'. "<<endl;
+        }
+    }else if (seleccion==3)
+    {
+        int starrow=0,startcol=0;
         for (int i = 0; i < maze.size(); i++)
         {
             for (int j = 0; j < maze[i].size(); j++)
@@ -228,20 +334,25 @@ int main(){
             }
         }
         
-        vector<Position> path;
 
-        if (caminoDFS(maze,{starrow,startcol},{endrow,endcol},path))
+        vector<Position> pathBFS;
+        
+        if (caminoBFS(maze,{starrow,startcol},{endrow,endcol},pathBFS))
         {
-            cout<<"Camino encontrado: "<<endl;
+            cout<<"Camino encontrado con BFS:"<<endl;
 
-            printMazesolution(maze,{starrow,startcol},{endrow,endcol},path);
-        }
-        else
+            printMazesolution(maze,{starrow,startcol},{endrow,endcol},pathBFS);
+        }else
         {
-            cout<<"No se encontro un camino desde 'e' hasta 's'. "<<endl;
+            cout<<"No se encontro un camino con BFS"<<endl;
         }
-    }else
+        
+        
+    }
+    else
     {
         cout<<"";
+        
     } 
 }
+
