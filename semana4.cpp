@@ -1,422 +1,412 @@
 #include <iostream>
+#include <algorithm>
 #include <vector>
+#include <fstream>
+#include <iomanip>
+#include <queue>
+#include <limits>
+
 using namespace std;
 
-// Definición de la clase Nodo
-class Nodo {
-public:
-  int dato;
-  Nodo* left;
-  Nodo* right;
+#define ANSI_COLOR_RESET "\033[0m"
+#define ANSI_COLOR_YELLOW "\033[1;33m"
+#define ANSI_COLOR_RED "\033[1;31m"
+#define ANSI_COLOR_ORANGE "\033[1;38;5;208m"
+#define ANSI_COLOR_GREEN "\033[1;32m"
+#define ANSI_COLOR_CELESTE "\033[1;36m"
 
-  // Constructor
-  Nodo(int dato) {
-    this->dato = dato;
-    left = nullptr;
-    right = nullptr;
-  }
+
+class Position{
+public:
+    int row;
+    int col;
+    Position():row(0),col(0){}
+    Position(int r,int c):row(r),col(c){}
 };
 
-// Definición de la clase BST (Árbol Binario de Búsqueda)
-class BST {
+class DFS{
 private:
-    Nodo* raiz;
-    Nodo* insertarNodoAux(Nodo* nodo, int dato);
-    Nodo* buscarNodoAux(Nodo* nodo, int dato);
-    Nodo* buscarhojaleftAux(Nodo* nodo,int dato);
-    Nodo* buscarhojarightAux(Nodo* nodo,int dato);
+    vector<vector<char>> maze;
+    Position start,end;
+    vector<Position> path;
 
+    bool validarPosicion(const Position& pos)const{
+        return pos.row>=0 && pos.row <maze.size() && pos.col>= 0 && pos.col<maze[pos.row].size();
+    }
+    bool caminoDFS(Position current,const Position& end){
+        if (!validarPosicion(current)) {
+            return false;
+        }
 
-    // Funciones auxiliares para imprimir los nodos en diferentes órdenes
-    void imprimirEnOrdenAux(Nodo* nodo);
-    void imprimirPreOrdenAux(Nodo* nodo);
-    void imprimirPostOrdenAux(Nodo* nodo);
-    int calcularAlturaAux(Nodo* nodo);
+        if (current.row == end.row && current.col == end.col) {
+            path.push_back(current);
+            return true;
+        }
 
-    // Ejercicio 1:
-    Nodo* encontrarSucesorAux(Nodo*, int);
+        if (maze[current.row][current.col] == ' ' || maze[current.row][current.col] == 'e') {
+            path.push_back(current);
 
-    // EJERCICIO 2:
-    bool esArbolAVLAux(Nodo* Nodo);
+            maze[current.row][current.col] = '*';
 
-    //Ejercicio 3:
-    Nodo* hojaIzquierda(Nodo* nodo);
-    Nodo* hojaDerecha(Nodo* nodo);
-
-    //EJERCICIO 1B
-    Nodo* padreAux(Nodo*, int);
-
-    Nodo* LCAAux(Nodo*,int);
+            if (caminoDFS({current.row - 1, current.col}, end) ||
+                caminoDFS({current.row + 1, current.col}, end) ||
+                caminoDFS({current.row, current.col - 1}, end) ||
+                caminoDFS({current.row, current.col + 1}, end)) {
+                return true;
+            }
+            path.pop_back();
+        }
+        return false;
+    }
 
 public:
-    // Constructor
-    BST();
-    BST(vector<int> preorden);
+    DFS(const string& filename){
+        ifstream file(filename);
+        string line;
+        while (getline(file,line))
+        {
+            vector<char> row;
+            for(char c:line){
+                row.push_back(c);
+            }
+            maze.push_back(row);
+        }
+        file.close();
+    }
 
-    //----------TAREA----------//
-    Nodo* LCA(int,int);
-    vector<int> camino(int,int);
-
-
-
-
-    ~BST();
-    void insertarNodo(int dato);
-    Nodo* buscarNodo(int dato);
-    Nodo* buscarhojaleft(int dato);
-    Nodo* buscarhojaright(int dato);
-
-  // Funciones para imprimir los nodos en diferentes órdenes
-    void imprimirEnOrden();
-    void imprimirPreOrden();
-    void imprimirPostOrden();
-    void destruirArbol(Nodo*);
-    int calcularAltura();
-
-    // Ejercicio 1a:
-    Nodo* encontrarSucesor(int);
-
-    //Ejercicio 2a:
-    bool esArbolAVL();
-
-    //Ejercicio 3a:
-
-    int maximo();
-    int minimo();
-
-    //Ejercicio 1b:
-    Nodo* padre(int);
-
+    void datastartend();
+    void printMazeSolution() const;
+    bool solucionDFS(){
+        return caminoDFS(start,end);
+    }
 };
 
-// Constructor
-BST::BST(): raiz(nullptr) {}
-
-// Constructor
-BST::BST(vector<int> preorden) {
-  raiz = nullptr;
-  for (int i = 0; i < preorden.size(); i++) {
-    insertarNodo(preorden[i]);
-  }
-}
-
-Nodo* BST::LCA(int a,int b){
-    Nodo* n=padre(a);
-    if (LCAAux(n,b)!=buscarNodo(b))
-    {
-      return LCA(n->dato,b);
-    }
-    else{
-      return buscarNodo(n->dato); 
+void DFS::datastartend(){
+    for (int i = 0; i < maze.size(); i++){
+        for (int j = 0; j < maze[i].size(); j++){
+            if (maze[i][j]=='e'){
+                start.row=i;
+                start.col=j;
+            }else if (maze[i][j]=='s'){
+                end.row=i;
+                end.col=j;
+            }  
+        }
     }
 }
 
-Nodo* BST::LCAAux(Nodo* nodo,int b){
-  if (nodo == nullptr || nodo->dato == b)
-    return nodo;
-
-  if (b < nodo->dato)
-    return buscarNodoAux(nodo->left, b);
-  else
-    return buscarNodoAux(nodo->right, b);
-}
-
-// Insertar un nodo en el árbol
-void BST::insertarNodo(int dato) {
-  raiz = insertarNodoAux(raiz, dato);
-}
-
-// Función auxiliar para insertar un nodo en el árbol
-Nodo* BST::insertarNodoAux(Nodo* nodo, int dato) {
-  if (nodo == nullptr)
-    return new Nodo(dato);
-
-  if (dato < nodo->dato)
-    nodo->left = insertarNodoAux(nodo->left, dato);
-  else if (dato > nodo->dato)
-    nodo->right = insertarNodoAux(nodo->right, dato);
-  return nodo;
-}
-
-// Buscar un nodo en el árbol
-Nodo* BST::buscarNodo(int dato) {
-  return buscarNodoAux(raiz, dato);
-}
-
-// Función auxiliar para buscar un nodo en el árbol
-Nodo* BST::buscarNodoAux(Nodo* nodo, int dato) {
-  if (nodo == nullptr || nodo->dato == dato)
-    return nodo;
-
-  if (dato < nodo->dato)
-    return buscarNodoAux(nodo->left, dato);
-  else
-    return buscarNodoAux(nodo->right, dato);
-}
-
-
-
-// Función para imprimir los nodos en orden
-void BST::imprimirEnOrden() {
-  imprimirEnOrdenAux(raiz);
-  cout << endl;
-}
-
-// Función auxiliar para imprimir los nodos en orden
-void BST::imprimirEnOrdenAux(Nodo* nodo) {
-  if (nodo == nullptr) {
-    return;
-  }
-
-  imprimirEnOrdenAux(nodo->left);
-  cout << nodo->dato << " ";
-  imprimirEnOrdenAux(nodo->right);
-}
-
-// Función para imprimir los nodos en preorden
-void BST::imprimirPreOrden() {
-  imprimirPreOrdenAux(raiz);
-  cout << endl;
-}
-
-// Función auxiliar para imprimir los nodos en preorden
-void BST::imprimirPreOrdenAux(Nodo* nodo) {
-  if (nodo == nullptr) {
-    return;
-  }
-
-  cout << nodo->dato << " ";
-  imprimirPreOrdenAux(nodo->left);
-  imprimirPreOrdenAux(nodo->right);
-}
-
-// Función para imprimir los nodos en postorden
-void BST::imprimirPostOrden() {
-  imprimirPostOrdenAux(raiz);
-  cout << endl;
-}
-
-// Función auxiliar para imprimir los nodos en postorden
-void BST::imprimirPostOrdenAux(Nodo* nodo) {
-  if (nodo == nullptr) {
-    return;
-  }
-
-  imprimirPostOrdenAux(nodo->left);
-  imprimirPostOrdenAux(nodo->right);
-  cout << nodo->dato << " ";
-}
-
-BST::~BST() {
-  destruirArbol(raiz);
-}
-
-// Función auxiliar para destruir el árbol utilizando un recorrido PostOrden
-void BST::destruirArbol(Nodo* nodo) {
-  if (nodo == nullptr) {
-    return;
-  }
-
-  // Recorrer el subárbol izquierdo
-  destruirArbol(nodo->left);
-
-  // Recorrer el subárbol derecho
-  destruirArbol(nodo->right);
-
-  // Eliminar el nodo actual
-  delete nodo;
-}
-
-// Altura del Arbol
-int BST::calcularAltura() {
-  return calcularAlturaAux(raiz);
-}
-
-// Función auxiliar para calcular la altura de un nodo
-int BST::calcularAlturaAux(Nodo* nodo) {
-  if (nodo == nullptr)
-    return 0;
-
-  return 1 + max(calcularAlturaAux(nodo->left), calcularAlturaAux(nodo->right));
-}
-
-// Ejercicio 1:
-Nodo* BST::encontrarSucesor(int dato) {
-    return encontrarSucesorAux(raiz, dato);
-}
-
-// Función auxiliar para encontrar el sucesor de un nodo
-Nodo* BST::encontrarSucesorAux(Nodo* nodo, int dato) {
-    if (nodo == nullptr)
-        return nullptr;
-    if (nodo->dato <= dato)
-        return encontrarSucesorAux(nodo->right, dato);
-    else{
-        Nodo* sucesor = encontrarSucesorAux(nodo->left, dato);
-        if (sucesor == nullptr)
-            return nodo;
-        else
-            return sucesor;
+void DFS::printMazeSolution()const{
+    for (int i = 0; i < maze.size(); ++i) {
+        for (int j = 0; j < maze[i].size(); ++j) {
+            if (i == start.row && j == start.col && maze[i][j] == 'e') {
+                cout << ANSI_COLOR_YELLOW << 'e' << ANSI_COLOR_RESET << ' ';
+            }else if (i == end.row && j == end.col && maze[i][j] == 's') {
+                cout << ANSI_COLOR_RED << 's' << ANSI_COLOR_RESET << ' ';
+            }else if (maze[i][j]=='+')
+            {
+                cout<<ANSI_COLOR_CELESTE<<'+'<<ANSI_COLOR_RESET<<' ';
+            }else{
+                bool isPath = false;
+                for (const auto& pos : path) {
+                    if (i == pos.row && j == pos.col) {
+                        isPath = true;
+                        break;
+                    }
+                }
+                if (isPath) {
+                    cout << ANSI_COLOR_GREEN << '*' << ANSI_COLOR_RESET << ' ';
+                } else if (maze[i][j] == '*') {
+                    cout << ANSI_COLOR_ORANGE << '*' << ANSI_COLOR_RESET << ' ';
+                } else {
+                    cout << maze[i][j] << ' ';
+                }
+            }
+        }
+        cout << endl;
     }
 }
 
-//EJERCICIO 2
-bool BST::esArbolAVL(){
-  return esArbolAVLAux(raiz);
-}
-
-bool BST::esArbolAVLAux(Nodo* nodo){
-  if (nodo==nullptr)
-  {
-    return true;
-  }
-
-  int alturaIzq=calcularAlturaAux(nodo->left);
-  int alturaDer=calcularAlturaAux(nodo->right);
-  int diferenciaAltura=abs(alturaIzq-alturaDer);
-
-  if (diferenciaAltura>1)
-  {
-    return false;
-  }
-
-  return esArbolAVLAux(nodo->left) && esArbolAVLAux(nodo->right); 
-}
-
-//EJERCICIO 3
-int BST::maximo(){
-  return hojaDerecha(raiz)->dato;
-}
-Nodo* BST::hojaDerecha(Nodo* nodo){
-  if (nodo->right==nullptr)
-  {
-    return nodo;
-  }
-  return hojaDerecha(nodo->right);  
-}
-
-int BST::minimo(){
-  return hojaIzquierda(raiz)->dato;
-}
-
-Nodo* BST::hojaIzquierda(Nodo* nodo){
-  if (nodo->left==nullptr)
-  {
-    return nodo;
-  }
-  return hojaIzquierda(nodo->left);
-}
-
-//EJERCICIO 1B
-
-Nodo* BST::padre(int x){
-    return padreAux(raiz,x);
-}
-
-Nodo* BST::padreAux(Nodo* nodo,int x){
-    if (nodo==nullptr)
-    {
-        return nullptr;
+class BFS{
+private:
+    vector<vector<char>> maze;
+    Position start,end;
+    bool validarposicion(Position& pos){
+        return pos.row >= 0 && pos.row < maze.size() && pos.col >= 0 && pos.col < maze[pos.row].size();
     }
-    if (raiz->dato==x) // x es la raiz 50
-    {
-        return nullptr;
-    }
+    bool caminoBFS(Position& star,Position& end,vector<Position>& path){
 
-    if (nodo->left!=nullptr && nodo->left->dato==x ) // buscamos padre de 30 
-    {
-        return nodo;    
+        
+        queue<Position> queue;
+        vector<vector<bool>> visited(maze.size(), vector<bool>(maze[0].size(), false));
+        vector<vector<Position>> parent(maze.size(), vector<Position>(maze[0].size(), Position(-1, -1)));
+
+        queue.push(star);
+        visited[star.row][star.col] = true;
+
+        while (!queue.empty()) {
+            Position current = queue.front();
+            queue.pop();
+            maze[current.row][current.col] = '*';
+
+            if (current.row == end.row && current.col == end.col) {
+                Position backtrack = end;
+                while (!(backtrack.row == star.row && backtrack.col == star.col)) {
+                    path.push_back(backtrack);
+                    backtrack = parent[backtrack.row][backtrack.col];
+                }
+                reverse(path.begin(), path.end());
+                return true;
+            }
+
+            vector<Position> directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+
+            for (const auto& dir : directions) {
+                int newrow = current.row + dir.row;
+                int newcol = current.col + dir.col;
+
+                if (newrow >= 0 && newrow < maze.size() && newcol >= 0 && newcol < maze[newrow].size() &&
+                    maze[newrow][newcol] != '+' && !visited[newrow][newcol]) {
+                    queue.push({newrow, newcol});
+                    visited[newrow][newcol] = true;
+                    parent[newrow][newcol] = current;
+                }
+            }
+        }
+        return false;
     }
-    if (nodo->right!=nullptr && nodo->right->dato==x)
-    {
-        return nodo;
+public:
+    BFS(const string& filename){
+        ifstream file(filename);
+        string line;
+        while (getline(file,line)){
+            vector<char> row;
+            for(char c:line){
+                row.push_back(c);
+            }
+            maze.push_back(row);
+        }
+        file.close();
     }
 
-    if (x<nodo->dato)
-    {
-        return padreAux(nodo->left,x);
+    void datastarend();
+    void printMazeSolution(vector<Position>& path);
+
+    vector<Position> solucionBFS(){
+        vector<Position> pathBFS;
+        if (caminoBFS(start,end,pathBFS))
+        {
+            return pathBFS;
+        }else{
+            return {};
+        } 
+    }
+};
+
+void BFS::datastarend(){
+    for (int i = 0; i < maze.size(); i++) {
+        for (int j = 0; j < maze[i].size(); j++) {
+            if (maze[i][j] == 'e') {
+                start = Position(i, j);
+            } else if (maze[i][j] == 's') {
+                end = Position(i, j);
+            }
+        }
+    }
+}
+
+void BFS::printMazeSolution(vector<Position>& path){
+    for (int i = 0; i < maze.size(); ++i) {
+        for (int j = 0; j < maze[i].size(); ++j) {
+            if (i == start.row && j == start.col && maze[i][j] == 'e') {
+                cout << ANSI_COLOR_YELLOW << 'e' << ANSI_COLOR_RESET << ' ';
+            }else if (i == end.row && j == end.col && maze[i][j] == 's') {
+                cout << ANSI_COLOR_RED << 's' << ANSI_COLOR_RESET << ' ';
+            }else if (maze[i][j]=='+')
+            {
+                cout<<ANSI_COLOR_CELESTE<<'+'<<ANSI_COLOR_RESET<<' ';
+            }else{
+                bool isPath = false;
+                for (const auto& pos : path) {
+                    if (i == pos.row && j == pos.col) {
+                        isPath = true;
+                        break;
+                    }
+                }
+                if (isPath) {
+                    cout << ANSI_COLOR_GREEN << '*' << ANSI_COLOR_RESET << ' ';
+                } else if (maze[i][j] == '*') {
+                    cout << ANSI_COLOR_ORANGE << '*' << ANSI_COLOR_RESET << ' ';
+                } else {
+                    cout << maze[i][j] << ' ';
+                }
+            }
+        }
+        cout << endl;
+    }
+}
+
+class Dijkstra{
+private:
+    vector<vector<char>> maze;
+    Position start,end;
+
+    bool isValidPosition(const Position& pos) const {
+        return pos.row >= 0 && pos.row < maze.size() && pos.col >= 0 && pos.col < maze[pos.row].size();
     }
 
-    else
-    {
-        return padreAux(nodo->right,x);
-    }   
-}
+    int calcularDistancia(const Position& pos1,const Position& pos2)const{
+        return abs(pos1.row - pos2.row) + abs(pos1.col - pos2.col);
+    }
 
-
-
-Nodo* BST::buscarhojaleft(int dato){
-  Nodo* n=buscarNodo(dato);
-  return buscarhojaleftAux(n,dato);
-}
-
-Nodo* BST::buscarhojaleftAux(Nodo* nodo,int dato){
-  if (nodo->left!=nullptr)
-  {
-    return nodo->left;
-  }
-  else{
-    return nullptr;
-  }
-}
-
-Nodo* BST::buscarhojaright(int dato){
-  Nodo* n=buscarNodo(dato);
-  return buscarhojarightAux(n,dato);
-}
-
-Nodo* BST::buscarhojarightAux(Nodo* nodo,int dato){
-  if (nodo->right!=nullptr)
-  {
-    return nodo->right;
-  }
-  else{
-    return nullptr;
-  }
-}
-
-int main() {
-    // int x=55;
-    // int a=25,b=65;
-    // vector<int> pre_order = {50,30,20,10,25,40,70,60,55,65,80,75,90};
-    // BST arbol(pre_order);
-    // //arbol.imprimirPreOrden();
-    // Nodo* padre=arbol.padre(x);
-    // //cout<<"El padre de "<<x<<" es: "<<padre->dato<<endl;
-    // Nodo* lca1=arbol.LCA(a,b);
-    // cout<<"El ancestro comun es "<<lca1->dato<<endl;
-    // Nodo* buscar=arbol.buscarhojaleft(60);
-    // //cout<<"La hoja left: "<<buscar->dato<<endl;
-
-    // Nodo* e=arbol.buscarNodo(35);
-    // //cout<<"nodo: "<<e<<endl;
-
-
-    BST arbol;
-
-    arbol.insertarNodo(25);
-    arbol.insertarNodo(20);
-    arbol.insertarNodo(36);
-    arbol.insertarNodo(10);
-    arbol.insertarNodo(22);
-    arbol.insertarNodo(30);
-    arbol.insertarNodo(40);
-    arbol.insertarNodo(5);
-    arbol.insertarNodo(12);
-    arbol.insertarNodo(28);
-    arbol.insertarNodo(38);
-    arbol.insertarNodo(48);
-    arbol.insertarNodo(2);
-    arbol.insertarNodo(7);
-    arbol.insertarNodo(16);
-    arbol.insertarNodo(26);
-    arbol.insertarNodo(44);
-    arbol.insertarNodo(51);
-
-    //arbol.imprimirPreOrden();
-    Nodo* buscar=arbol.buscarhojaleft(48);
-    cout<<"La hoja left: "<<buscar->dato<<endl;
-    Nodo* bsc=arbol.buscarhojaright(48);
-    cout<<"La hoja right: "<<bsc->dato<<endl;
+    bool caminodijkstra(const Position& start, const Position& end, vector<Position>& path)const{
+        priority_queue<pair<int,Position>,vector<pair<int,Position>>,greater<pair<int,Position>>> pq;
+        vector<vector<int>> distance(maze.size(), vector<int>(maze[0].size(), numeric_limits<int>::max()));
+        vector<vector<Position>> parent(maze.size(), vector<Position>(maze[0].size(), Position(-1, -1)));
     
+        pq.push({0,start});
+        distance[start.row][start.col]=0;
+
+        while (!pq.empty()){
+            Position current=pq.top().second;
+            pq.pop();
+            if (current.row==end.row && current.col==end.col){
+                Position backtrack=end;
+                while (!(backtrack.row==start.row && backtrack.col==start.col))
+                {
+                    path.push_back(backtrack);
+                    backtrack = parent[backtrack.row][backtrack.col];
+                }
+                reverse(path.begin(), path.end());
+                return true;
+            }
+            vector<Position> directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+
+            for (const auto& dir : directions) {
+                int newrow = current.row + dir.row;
+                int newcol = current.col + dir.col;
+                Position newPosition(newrow,newcol);   
+
+                if (isValidPosition(newPosition) && maze[newrow][newcol] != '+' &&
+                    distance[newrow][newcol] > distance[current.row][current.col] + calcularDistancia(current, newPosition)) {
+                    distance[newrow][newcol] = distance[current.row][current.col] + calcularDistancia(current, newPosition);
+                    pq.push({distance[newrow][newcol], newPosition});
+                    parent[newrow][newcol] = current;
+                } 
+            }
+            
+        }
+        return false;
+    }
+
+public:
+    Dijkstra(const string& filename){
+        ifstream file(filename);
+        string line;
+        while (getline(file,line)){
+            vector<char> row;
+            for(char c:line){
+                row.push_back(c);
+            }
+            maze.push_back(row);
+        }
+        file.close();
+    }
+    void datastarend();
+    void printMazeSolution(const vector<Position>& path) const;
+    vector<Position> solutionDijkstra()const{
+        vector<Position> pathDijkstra;
+        if (caminodijkstra(start,end,pathDijkstra))
+        {
+            return pathDijkstra;
+        }else{
+            return {};
+        }
+        
+    }
+    
+};
+
+void Dijkstra::datastarend(){
+    for (int i = 0; i < maze.size(); i++) {
+        for (int j = 0; j < maze[i].size(); j++) {
+            if (maze[i][j] == 'e') {
+                start = Position(i, j);
+            } else if (maze[i][j] == 's') {
+                end = Position(i, j);
+            }
+        }
+    }
+}
+
+void Dijkstra::printMazeSolution(const vector<Position>& path)const{
+    for (int i = 0; i < maze.size(); ++i) {
+        for (int j = 0; j < maze[i].size(); ++j) {
+            if (i == start.row && j == start.col && maze[i][j] == 'e') {
+                cout << ANSI_COLOR_YELLOW << 'e' << ANSI_COLOR_RESET << ' ';
+            }else if (i == end.row && j == end.col && maze[i][j] == 's') {
+                cout << ANSI_COLOR_RED << 's' << ANSI_COLOR_RESET << ' ';
+            }else if (maze[i][j]=='+')
+            {
+                cout<<ANSI_COLOR_CELESTE<<'+'<<ANSI_COLOR_RESET<<' ';
+            }else{
+                bool isPath = false;
+                for (const auto& pos : path) {
+                    if (i == pos.row && j == pos.col) {
+                        isPath = true;
+                        break;
+                    }
+                }
+                if (isPath) {
+                    cout << ANSI_COLOR_GREEN << '*' << ANSI_COLOR_RESET << ' ';
+                } else if (maze[i][j] == '*') {
+                    cout << ANSI_COLOR_ORANGE << '*' << ANSI_COLOR_RESET << ' ';
+                } else {
+                    cout << maze[i][j] << ' ';
+                }
+            }
+        }
+        cout << endl;
+    }
+}
+
+
+int main(){
+    // DFS mazesolver("maze.txt");
+    
+    // mazesolver.datastartend();
+    // if (mazesolver.solucionDFS())
+    // {
+    //     cout<<"Camino encontrado con algoritmo DFS: "<<endl;
+    //     mazesolver.printMazeSolution();
+    //     cout<<endl<<endl;
+    // } else {
+    //     cout << "No se encontró un camino desde 'e' hasta 's'." << endl;
+    // }
+    
+    // BFS mazesolver2("maze.txt");
+
+    // mazesolver2.datastarend();
+    // vector<Position> pathBFS=mazesolver2.solucionBFS();
+
+    // if (!pathBFS.empty())
+    // {
+    //     cout<<"Camino encontrado con algoritmo BFS: "<<endl;
+    //     mazesolver2.printMazeSolution(pathBFS);
+    //     cout<<endl<<endl;
+    // }else{
+    //     cout << "No se encontró un camino desde 'e' hasta 's'." << endl;
+    // }
+    
+    Dijkstra mazesolver3("maze.txt");
+
+    mazesolver3.datastarend();
+
+    vector<Position> pathdijkstra=mazesolver3.solutionDijkstra();
+
+    if (!pathdijkstra.empty()) {
+        cout << "Camino encontrado con Dijkstra:" << endl;
+        mazesolver3.printMazeSolution(pathdijkstra);
+    } else {
+        cout << "No se encontró un camino desde 'e' hasta 's'." << endl;
+    }
 }
